@@ -21,6 +21,8 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"strings"
@@ -28,8 +30,22 @@ import (
 	"github.com/k8stopologyawareschedwg/podfingerprint"
 )
 
+type Fingerprinter interface {
+	Add(namespace, name string) error
+	Sign() string
+}
+
 func main() {
-	fp := podfingerprint.NewFingerprint(0)
+	withTrace := flag.Bool("T", false, "enable tracing")
+	flag.Parse()
+
+	var fp Fingerprinter
+	var st podfingerprint.Status
+	if *withTrace {
+		fp = podfingerprint.NewTracingFingerprint(0, &st)
+	} else {
+		fp = podfingerprint.NewFingerprint(0)
+	}
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -44,4 +60,8 @@ func main() {
 		fp.Add(fields[0], fields[1])
 	}
 	fmt.Println(fp.Sign())
+
+	if *withTrace {
+		json.NewEncoder(os.Stderr).Encode(st)
+	}
 }
