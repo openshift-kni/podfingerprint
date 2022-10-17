@@ -50,7 +50,7 @@ func TestNamespacedNameGetters(t *testing.T) {
 
 var expectedStatusJson string = `{"fingerprintExpected":"pfp0v001b92008c14168b3a6","fingerprintComputed":"pfp0v001b92008c14168b3a6","pods":[{"Namespace":"ns1","Name":"n1"},{"Namespace":"ns1","Name":"n2"},{"Namespace":"ns2","Name":"n1"},{"Namespace":"ns3","Name":"n1"},{"Namespace":"ns3","Name":"n2"}]}`
 
-func TestTraceStatus(t *testing.T) {
+func TestTraceStatusJSON(t *testing.T) {
 	pods := []NamespacedName{
 		{
 			Namespace: "ns1",
@@ -92,6 +92,57 @@ func TestTraceStatus(t *testing.T) {
 	got := string(data)
 	if got != expectedStatusJson {
 		t.Errorf("status report error.\ngot: %s\nexp: %s", got, expectedStatusJson)
+	}
+}
+
+var expectedStatusRepr = `> processing 5 pods
++ ns1/n1
++ ns1/n2
++ ns2/n1
++ ns3/n1
++ ns3/n2
+= pfp0v001b92008c14168b3a6
+V pfp0v001b92008c14168b3a6
+`
+
+func TestTraceStatusRepr(t *testing.T) {
+	pods := []NamespacedName{
+		{
+			Namespace: "ns1",
+			Name:      "n1",
+		},
+		{
+			Namespace: "ns1",
+			Name:      "n2",
+		},
+		{
+			Namespace: "ns2",
+			Name:      "n1",
+		},
+		{
+			Namespace: "ns3",
+			Name:      "n1",
+		},
+		{
+			Namespace: "ns3",
+			Name:      "n2",
+		},
+	}
+
+	st := Status{}
+	fp := NewTracingFingerprint(len(pods), &st)
+	for _, pod := range pods {
+		fp.Add(pod.Namespace, pod.Name)
+	}
+	fp.Sign()
+	err := fp.Check("pfp0v001b92008c14168b3a6")
+	if err != nil {
+		t.Fatalf("fp check error: %v", err)
+	}
+
+	got := st.Repr()
+	if got != expectedStatusRepr {
+		t.Errorf("status repr error.\ngot: %s\nexp: %s", got, expectedStatusRepr)
 	}
 }
 

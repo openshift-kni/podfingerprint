@@ -16,6 +16,11 @@
 
 package podfingerprint
 
+import (
+	"fmt"
+	"strings"
+)
+
 // NamespacedName is a Namespace/Name pair
 type NamespacedName struct {
 	Namespace string
@@ -79,6 +84,23 @@ func (st *Status) Sign(computed string) {
 
 func (st *Status) Check(expected string) {
 	st.FingerprintExpected = expected
+}
+
+// Repr represents the Status as compact yet human-friendly string
+func (st Status) Repr() string {
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("> processing %d pods\n", len(st.Pods)))
+	for _, pod := range st.Pods {
+		sb.WriteString("+ " + pod.Namespace + "/" + pod.Name + "\n")
+	}
+
+	sb.WriteString("= " + st.FingerprintComputed + "\n")
+	if st.FingerprintExpected != "" {
+		sb.WriteString("V " + st.FingerprintExpected + "\n")
+	}
+
+	return sb.String()
 }
 
 type TracingFingerprint struct {
