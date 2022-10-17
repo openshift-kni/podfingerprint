@@ -27,22 +27,9 @@ import (
 	"testing"
 )
 
-type podIdent struct {
-	Namespace string
-	Name      string
-}
+var stressPods []NamespacedName
 
-func (pi podIdent) GetNamespace() string {
-	return pi.Namespace
-}
-
-func (pi podIdent) GetName() string {
-	return pi.Name
-}
-
-var stressPods []podIdent
-
-var pods []podIdent
+var pods []NamespacedName
 var podsErr error
 
 const (
@@ -75,7 +62,7 @@ func init() {
 
 	stressPodsCount := clusterMaxNodes * clusterMaxPodsPerNode
 	for idx := 0; idx < stressPodsCount; idx++ {
-		stressPods = append(stressPods, podIdent{
+		stressPods = append(stressPods, NamespacedName{
 			Namespace: RandStringBytes(stressNamespaceLen),
 			Name:      RandStringBytes(stressNameLen),
 		})
@@ -145,17 +132,17 @@ func TestSumPodStable(t *testing.T) {
 		t.Fatalf("cannot load the test data: %v", podsErr)
 	}
 
-	localPods := make([]podIdent, len(pods))
+	localPods := make([]NamespacedName, len(pods))
 	copy(localPods, pods)
 	rand.Shuffle(len(localPods), func(i, j int) {
 		localPods[i], localPods[j] = localPods[j], localPods[i]
 	})
 
-	fp := &Fingerprint{}
+	fp := NewFingerprint(0)
 	for _, pod := range pods {
 		fp.AddPod(&pod)
 	}
-	fp2 := &Fingerprint{}
+	fp2 := NewFingerprint(0)
 	for _, localPod := range localPods {
 		fp2.Add(localPod.Namespace, localPod.Name)
 	}
@@ -187,17 +174,17 @@ func TestSumStable(t *testing.T) {
 		t.Fatalf("cannot load the test data: %v", podsErr)
 	}
 
-	localPods := make([]podIdent, len(pods))
+	localPods := make([]NamespacedName, len(pods))
 	copy(localPods, pods)
 	rand.Shuffle(len(localPods), func(i, j int) {
 		localPods[i], localPods[j] = localPods[j], localPods[i]
 	})
 
-	fp := &Fingerprint{}
+	fp := NewFingerprint(0)
 	for _, pod := range pods {
 		fp.Add(pod.Namespace, pod.Name)
 	}
-	fp2 := &Fingerprint{}
+	fp2 := NewFingerprint(0)
 	for _, localPod := range localPods {
 		fp2.Add(localPod.Namespace, localPod.Name)
 	}
@@ -214,17 +201,17 @@ func TestSign(t *testing.T) {
 		t.Fatalf("cannot load the test data: %v", podsErr)
 	}
 
-	localPods := make([]podIdent, len(pods))
+	localPods := make([]NamespacedName, len(pods))
 	copy(localPods, pods)
 	rand.Shuffle(len(localPods), func(i, j int) {
 		localPods[i], localPods[j] = localPods[j], localPods[i]
 	})
 
-	fp := &Fingerprint{}
+	fp := NewFingerprint(0)
 	for _, pod := range pods {
 		fp.Add(pod.Namespace, pod.Name)
 	}
-	fp2 := &Fingerprint{}
+	fp2 := NewFingerprint(0)
 	for _, localPod := range localPods {
 		fp2.Add(localPod.Namespace, localPod.Name)
 	}
@@ -239,7 +226,7 @@ func TestSign(t *testing.T) {
 func TestCheck(t *testing.T) {
 	type testCase struct {
 		description   string
-		pods          []podIdent
+		pods          []NamespacedName
 		fingerprint   string
 		expectedError error
 	}
