@@ -172,3 +172,49 @@ func TestSignCrosscheck(t *testing.T) {
 		t.Fatalf("signature not stable: %q vs %q", x, x2)
 	}
 }
+
+func TestStatusClone(t *testing.T) {
+	orig := Status{
+		FingerprintExpected: "PFPExpectedOrig",
+		FingerprintComputed: "PFPComputedOrig",
+		Pods: []NamespacedName{
+			{
+				Namespace: "NSOrig1",
+				Name:      "Name1",
+			},
+			{
+				Namespace: "NSOrig2",
+				Name:      "Name2",
+			},
+		},
+	}
+
+	cloned := orig.Clone()
+
+	origData, err := json.Marshal(orig)
+	if err != nil {
+		t.Errorf("marshal orig failed: %v", err)
+	}
+	clonedData, err := json.Marshal(cloned)
+	if err != nil {
+		t.Errorf("marshal cloned failed: %v", err)
+	}
+	if string(origData) != string(clonedData) {
+		t.Errorf("clone not identical:\norig=%s\ncloned=%s", string(origData), string(clonedData))
+	}
+
+	cloned.FingerprintComputed = "PFPModified2"
+	cloned.Pods = append(cloned.Pods, NamespacedName{
+		Namespace: "NSModified2",
+		Name:      "NameModified2",
+	})
+
+	origData2, err := json.Marshal(orig)
+	if err != nil {
+		t.Errorf("marshal orig (2) failed: %v", err)
+	}
+
+	if string(origData) != string(origData2) {
+		t.Errorf("original modified changing the clone!\norig=%s\norig2=%s", string(origData), string(origData2))
+	}
+}
