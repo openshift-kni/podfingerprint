@@ -95,7 +95,8 @@ func TestTraceStatusJSON(t *testing.T) {
 	}
 }
 
-var expectedStatusRepr = `> processing 5 pods
+var expectedStatusRepr = `> processing node "test-node"
+> processing 5 pods
 + ns1/n1
 + ns1/n2
 + ns2/n1
@@ -129,7 +130,7 @@ func TestTraceStatusRepr(t *testing.T) {
 		},
 	}
 
-	st := Status{}
+	st := MakeStatus("test-node")
 	fp := NewTracingFingerprint(len(pods), &st)
 	for _, pod := range pods {
 		fp.Add(pod.Namespace, pod.Name)
