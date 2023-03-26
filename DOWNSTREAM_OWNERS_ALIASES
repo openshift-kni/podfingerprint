@@ -1,0 +1,16 @@
+# See the OWNERS docs at https://go.k8s.io/owners
+
+aliases:
+  kni-podfingerprint-reviewers:
+    - MarSik
+    - ffromani
+    - yanirq
+    - Tal-or
+    - jlojosnegros
+    - swatisehgal
+  kni-podfingerprint-approvers:
+    - MarSik
+    - ffromani
+    - yanirq
+    - Tal-or
+    - swatisehgal
